@@ -33,8 +33,7 @@ fill(N, M, Mx) :-
     length(Mx, N),
     (N > M -> Min is 0; N = M -> Min is 1),
     findall(X, between(Min, M, X), TT),
-    fill_rows(N, M, Mx, TT),
-    print(Mx).
+    fill_rows(N, M, Mx, TT).
 
 fill_rows(_, _, [], _).
 fill_rows(N, M, [H|T], TT) :-
@@ -50,6 +49,15 @@ replace_L(N, OldElem, NewElem, List, List2) :-
     length(L1, N),
     append(L1, [OldElem|Rest], List),
     append(L1, [NewElem|Rest], List2).
+
+replace_Mx_all([], _, _, []).
+replace_Mx_all([H|T], Old, New, [NH|NT]) :-
+    replace_L(_, Old, New, H, NH),
+    replace_Mx_all(T, Old, New, NT),
+    !.
+
+replace_single_element_lists(Mx, NMx) :-
+    replace_Mx_all(Mx, [X], X, NMx).
 
 transpose([], []).
 transpose([R|Rs], Tx) :-
