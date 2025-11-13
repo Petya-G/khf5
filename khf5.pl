@@ -19,7 +19,10 @@ kezdotabla(szt(N, M, []), Mx) :-
 
 kezdotabla(szt(N, M, FLeiro), Mx) :-
     fill(N, M, Mx0),
-    forall(member(i(J, K, E), FLeiro), replace_m_n(Mx0, J, K, E, Mx)).
+    foldl(replace_entry, FLeiro, Mx0, Mx).
+
+replace_entry(i(J,K,E), Matrix, NewMatrix) :-
+    replace_m_n(Matrix, J, K, E, NewMatrix).
 
 fill(N, M, Mx) :-
     length(Mx, N),
