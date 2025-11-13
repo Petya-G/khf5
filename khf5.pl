@@ -14,8 +14,36 @@
 
 % :- pred ismert_szukites(feladvany_leiro::in, t_matrix::in, t_matrix::out).
 
+kezdotabla(szt(N, M, []), Mx) :-
+    fill(N, M, Mx).
+
 kezdotabla(szt(N, M, FLeiro), Mx) :-
-    (N > M -> findall(X, between(0, N, X), Dom); findall(X, between(1, N, X), Cols)),
+    fill(N, M, Mx0),
+    forall(member(i(J, K, E), FLeiro), replace_m_n(Mx0, J, K, E, Mx)).
+
+fill(N, M, Mx) :-
+    length(Mx, N),
+    (N > M -> Min is 0; N = M -> Min is 1),
+    findall(X, between(Min, M, X), TT),
+    fill_rows(N, M, Mx, TT),
+    print(Mx).
+
+fill_rows(_, _, [], _).
+fill_rows(N, M, [H|T], TT) :-
+    length(H, N),
+    maplist(=(TT), H),
+    fill_rows(N, M, T, TT).
+
+replace_m_n(Matrix, I, J, NewValue, NewMatrix) :-
+    I1 is I - 1,
+    J1 is J - 1,
+    replace_nth(I1, Old1, New1, Matrix, NewMatrix),
+    replace_nth(J1, _OldElem2, NewValue, Old1, New1).
+
+replace_nth(N, OldElem, NewElem, List, List2) :-
+    length(L1, N),
+    append(L1, [OldElem|Rest], List),
+    append(L1, [NewElem|Rest], List2).
 
 transpose([], []).
 transpose([R|Rs], Tx) :-
