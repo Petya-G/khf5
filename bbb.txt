@@ -1,0 +1,241 @@
+ismert_szukites(FLeiro, Mx0, Mx):-
+    loop(FLeiro, Mx0,[],Eredmeny),
+    (   Eredmeny == Mx0 ->  false,!;
+    Mx = Eredmeny,!)
+    .
+loop(FLeiro,Mx0,Acc, Out):-
+    FLeiro = szt(N, M, _),
+    ZeroMax is N - M,
+    to_list(Mx0,[],Mx0List),
+    (   member([],Mx0List)->Out = [],!;
+    (   member([_A],Mx0List)->  
+    checker(Mx0,Mx0,0,[],NewMx,ZeroMax),   
+	
+    loop(FLeiro,NewMx,Acc,Out)
+    ;  
+    (   zeroChecker2(Mx0,ZeroMax)->  
+    checker(Mx0,Mx0,0,[],NewMx,ZeroMax),
+        
+    (   rem(ZeroMax,2) =:= 1
+    ->  reverse(NewMx,Rev)
+    ;   
+    Rev = NewMx),
+    loop(FLeiro,Rev,Acc,Out)
+    ;       
+    Out = Mx0, !)
+    ))
+    .
+zeroChecker2([Row|Rest],ZeroMax):-
+    filter_zero(Row,0,NumZer),
+    (   NumZer =:= ZeroMax,anotherCheck(Row)
+    ->  true,!
+    ;   
+    zeroChecker2(Rest,ZeroMax))
+    .
+zeroChecker2([],_ZeroMax):-false,!.
+anotherCheck([Cell|Rest]):-
+			(   is_list(Cell),member(0,Cell)->  true,!;
+             anotherCheck(   Rest))
+             .
+anotherCheck([]):-false,!.
+zeroChecker([Cell|Rest],ZeroMax,Acc,Out):-
+    (   is_list(Cell),member(0,Cell)->  
+    select(0,Cell,NewCell),
+     zeroChecker(Rest,ZeroMax,[NewCell|Acc],Out);
+    zeroChecker(Rest,ZeroMax,[Cell|Acc],Out)
+    )
+    .
+zeroChecker([],_ZeroMax,Acc,Acc):-true.
+checker([Row|Rest],Mx0, Idx, Acc,Out,ZeroMax):-
+    filter_zero(Row,0,NumZer),
+    (   NumZer =:= ZeroMax->  
+    zeroChecker(Row,ZeroMax,[],ABCDE),
+    reverse(ABCDE,NewRow)
+    ;
+    NewRow = Row
+    ),
+    Idx1 is Idx + 1,
+    (   member([A],NewRow) ->  
+    nth0(ColIdx,NewRow,[A]),
+    deleteFromMx(A,Idx,ColIdx,Mx0,[],NewMx,ZeroMax),
+    Out = NewMx,!
+    ;   
+    checker(Rest,Mx0, Idx1, [NewRow|Acc],Out,ZeroMax)
+    )
+    .
+checker([],_,_,Acc,Acc,_):-!.
+deleteFromMx(A,Idx,ColIdx,Mx0,_Acc,NewMx,ZeroMax):-
+    checkRows(A,Idx,Mx0,0,[],ChangedRows,ZeroMax),  
+    reverse(ChangedRows, RR),
+    transpose(RR, Tr),
+    checkCols(A,ColIdx,Tr,0,[],ChangedCols,ZeroMax),
+    reverse(ChangedCols, RC),   
+    transpose(RC, Tr1),
+    NewMx = Tr1
+    .
+checkRows(A,Idx,[Row|Rest],Counter,Acc,Out,ZeroMax):-
+    filter_zero(Row,0,NumZer),    
+    Counter1 is Counter + 1,
+    (   NumZer > ZeroMax ->Out = [];
+    (   NumZer =:= ZeroMax -> 
+    zeroCase(Row,[],UpdatedZeroesRowBad),
+    reverse(UpdatedZeroesRowBad,UpdatedZeroesRow),  
+    (   Idx =:= Counter -> 
+    checkCells(A,UpdatedZeroesRow,Idx,0,[],NewRow,0),
+    reverse(NewRow,R),
+    checkRows(A,Idx,Rest,Counter1,[R|Acc],Out,ZeroMax)
+    ;
+    checkRows(A,Idx,Rest,Counter1,[UpdatedZeroesRow|Acc],Out,ZeroMax)
+    )    
+    ;
+    (   Idx =:= Counter -> 
+    checkCells(A,Row,Idx,0,[],NewRow,0),
+    reverse(NewRow,R),
+    checkRows(A,Idx,Rest,Counter1,[R|Acc],Out,ZeroMax)
+    ;
+    checkRows(A,Idx,Rest,Counter1,[Row|Acc],Out,ZeroMax)
+    )))
+    .
+checkRows(_A,_Idx,[],_Counter,Acc,Acc,_ZeroMax):-!.
+
+zeroCase([A|B],Acc,Out):-
+    (   is_list(A),member(0,A)->  
+    select(0,A, NewCell),
+    zeroCase(B,[NewCell|Acc],Out)
+    ;   
+    zeroCase(B,[A|Acc],Out)
+    )
+    .
+zeroCase([],Acc,Acc):-!.
+
+checkCells(A, [Cell|Rest], Idx,Counter,Acc, Out,MagicNumber):-
+    Counter1 is Counter + 1,
+    (   A =:= 0 ->  
+    (   nth0(0,Cell,A),length(Cell,1) ->  
+    replaceCell(A,Cell,NewCell,MagicNumber),
+    checkCells(A,Rest,Idx,Counter1,[NewCell|Acc],Out,MagicNumber)
+    ;   
+    checkCellZero(A,Cell,NewCell),
+    checkCells(A,Rest,Idx,Counter1,[NewCell|Acc],Out,MagicNumber)
+    ) 	
+    ;   
+    (   nth0(0,Cell,A),length(Cell,1) ->  
+        MagicNumber1 is MagicNumber + 1,
+    replaceCell(A,Cell,NewCell,MagicNumber1),
+    checkCells(A,Rest,Idx,Counter1,[NewCell|Acc],Out,MagicNumber1)
+    ;   
+    checkCell(A,Cell,NewCell),
+    checkCells(A,Rest,Idx,Counter1,[NewCell|Acc],Out,MagicNumber)
+    ) 	
+    )
+    .
+checkCells(_A, [], _Idx,_Counter,Acc, Acc,_):-!.
+checkCell(A,Cell,Out):-
+    (   member(A,Cell) ->  
+    select(A,Cell, NewCell),
+    Out = NewCell
+    ;   
+    Out = Cell
+    )
+    .
+checkCellZero(A,Cell,Out):-
+     (   member(A,Cell) ->  
+     (   length(Cell,1)->  
+     Out = A
+     ;   
+    Out = Cell
+     )
+    ;   
+    Out = Cell
+    )
+    .
+replaceCell(A,_Cell,Out,MN):-
+    (   MN < 2->  
+	Out = A;
+    Out = [])
+    .
+filter_zero([A|B],Acc,Out):-
+    Acc1 is Acc + 1,
+    (   \+is_list(A),A =:= 0 ->   
+    filter_zero(B,Acc1,Out)
+    ;
+    filter_zero(B,Acc,Out)
+    )
+    .
+filter_zero([],Acc,Acc).
+to_list([M|Mxs],Acc,Out):-
+    to_list_2(M,[],New),
+    append(New,Acc,Appended),
+    to_list(Mxs,Appended,Out)
+    .
+to_list([],Acc,Acc):-!.
+to_list_2([A|B],Acc,Out):-
+    to_list_2(B,[A|Acc],Out)
+    .
+to_list_2([],Acc,Acc):-!.  
+        
+
+checkCols(A,Idx,[Row|Rest],Counter,Acc,Out,ZeroMax):-
+    filter_zero(Row,0,NumZer),
+    Counter1 is Counter + 1,
+    (   NumZer > ZeroMax -> Out = [];     
+    (   NumZer =:= ZeroMax ->  
+    zeroCase(Row,[],UpdatedZeroesRowBad),
+    reverse(UpdatedZeroesRowBad,UpdatedZeroesRow),        
+    (   Idx =:= Counter -> 
+    checkCells2(A,UpdatedZeroesRow,Idx,0,[],NewRow,0),
+    reverse(NewRow,R),
+    checkCols(A,Idx,Rest,Counter1,[R|Acc],Out,ZeroMax)
+    ;
+    checkCols(A,Idx,Rest,Counter1,[UpdatedZeroesRow|Acc],Out,ZeroMax)
+    )    
+    
+    ;   
+    (   Idx =:= Counter -> 
+    checkCells2(A,Row,Idx,0,[],NewRow,0),
+    reverse(NewRow,R),
+    checkCols(A,Idx,Rest,Counter1,[R|Acc],Out,ZeroMax)
+    ;
+    checkCols(A,Idx,Rest,Counter1,[Row|Acc],Out,ZeroMax)
+    )))
+    .
+checkCols(_A,_Idx,[],_Counter,Acc,Acc,_ZeroMax):-!.
+
+
+checkCells2(A, [Cell|Rest], Idx,Counter,Acc, Out,MagicNumber):-
+    Counter1 is Counter + 1,
+    (   A =:= 0 ->  
+    (   nth0(0,Cell,A),length(Cell,1) ->  
+    replaceCell(A,Cell,NewCell,MagicNumber),
+    checkCells2(A,Rest,Idx,Counter1,[NewCell|Acc],Out,MagicNumber)
+    ;   
+    checkCellZero(A,Cell,NewCell),
+    checkCells2(A,Rest,Idx,Counter1,[NewCell|Acc],Out,MagicNumber)
+    ) 	
+    ;   
+    (   nth0(0,Cell,A),length(Cell,1) ->  
+    checkCell(A,Cell,NewCell),
+    MagicNumber1 is MagicNumber + 1,
+    checkCells2(A,Rest,Idx,Counter1,[NewCell|Acc],Out,MagicNumber1)
+    ;   
+    checkCell(A,Cell,NewCell),
+    checkCells2(A,Rest,Idx,Counter1,[NewCell|Acc],Out,MagicNumber)
+    ) 	
+    )
+    .
+checkCells2(_A, [], _Idx,_Counter,Acc, Acc,_):-!.
+% Adott matrix transzponalasa
+transpose([], []).
+transpose([Mx|Mxs], Ts) :-
+    transRow(Mx, [Mx|Mxs], Ts).
+
+% Sorokon vegigmegyunk
+transRow([], _, []).
+transRow([_|Rs], Ms, [Ts|Tss]) :-
+    transCol(Ms, Ts, Ms1),
+    transRow(Rs, Ms1, Tss).
+
+% Oszlopokat hozzaadjkuk
+transCol([], [], []).
+transCol([[M|Os]|Rest], [M|Ms], [Os|Oss]) :-
+    transCol(Rest, Ms, Oss).        
