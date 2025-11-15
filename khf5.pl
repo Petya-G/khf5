@@ -65,7 +65,13 @@ replace_single_element_lists2(Mx, NMx) :-
 find_and_delete(Mx, X, J, K, NMx) :-
     nth0(J, Mx, Row, Rest),
     delete_from_row(Row, X, NRow),
-    nth0(J, NMx, NRow, Rest).
+    nth0(J, NMx0, NRow, Rest),
+
+    transpose(NMx0, Tx),
+    nth0(K, Tx, Col, Rest1),
+    delete_from_row(Col, X, NCol),
+    nth0(K, NTx, NCol, Rest1),
+    transpose(NTx, NMx).
 
 delete_from_row([], _, []).
 delete_from_row([H|T], X, [NH|NT]) :-
@@ -73,9 +79,11 @@ delete_from_row([H|T], X, [NH|NT]) :-
     delete_from_row(T, X, NT),
     !.
 
+delete_L(_, Old, List, List) :-
+    \+ member(Old, List), !.
 delete_L(N, OldElem, List, List2) :-
-    length(L1, N),
     append(L1, [OldElem|Rest], List),
+    length(L1, N),
     append(L1, Rest, List2).
 
 transpose([], []).
