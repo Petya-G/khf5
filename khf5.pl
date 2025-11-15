@@ -63,8 +63,9 @@ replace_single_element_lists2(Mx, NMx) :-
     (X > 0, replace_Mx_all(Mx, [X], X, NMx)). %-> (matrix_pos(NMx, X, Row, Col),
 
 find_and_delete(Mx, X, J, K, NMx) :-
-    nth0(J, Mx, Row),
-    delete_from_row(Row, X, NRow).
+    nth0(J, Mx, Row, Rest),
+    delete_from_row(Row, X, NRow),
+    nth0(J, NMx, NRow, Rest).
 
 delete_from_row([], _, []).
 delete_from_row([H|T], X, [NH|NT]) :-
