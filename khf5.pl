@@ -14,8 +14,6 @@
 
 % :- pred ismert_szukites(feladvany_leiro::in, t_matrix::in, t_matrix::out).
 
-%ismert_szukites(szt(N, M, _), Mx0, Mx).
-    
 kezdotabla(szt(N, M, []), Mx) :-
     fill(N, M, Mx).
 
@@ -56,11 +54,25 @@ replace_Mx_all([H|T], Old, New, [NH|NT]) :-
     replace_Mx_all(T, Old, New, NT),
     !.
 
+find_single_values_Mx(Mx, L) :-
+    find_single_values_Mx(Mx, L, 0).
+find_single_values_Mx([], [], _).
+find_single_values_Mx([Row|Rest], [H|T], J) :-
+    find_single_values_L(Row, H, J),
+    find_single_values_Mx(Rest, T, J + 1).
+
+find_single_values_L([], [], _).
+find_single_values_L(Row, [H|T], J) :-
+    Row = [List|Rest],
+    List = X,
+    nth0(K, Row, List),
+    H = {X, J, K},
+    find_single_values_L(Rest, T, J).
+
+%ismert_szukites(szt(N, M, _), Mx0, Mx) :-
+    
 replace_single_element_lists(Mx, NMx) :-
     replace_Mx_all(Mx, [X], X, NMx).
-
-replace_single_element_lists2(Mx, NMx) :-
-    (X > 0, replace_Mx_all(Mx, [X], X, NMx)). %-> (matrix_pos(NMx, X, Row, Col),
 
 find_and_delete(_, _, _, _, []).
 find_and_delete(Mx, X, J, K, NMx) :-
