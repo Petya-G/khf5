@@ -74,8 +74,7 @@ find_single_values_L([_|RestRows], List, K, J) :-
     find_single_values_L(RestRows, List, K1, J).
 
 
-ismert_szukites(szt(N, M, _), Mx0, Mx) :- 
-
+%ismert_szukites(szt(N, M, _), Mx0, Mx) :- 
     
 replace_single_element_lists(Mx, NMx) :-
     replace_Mx_all(Mx, [X], X, NMx).
