@@ -19,8 +19,7 @@ kezdotabla(szt(N, M, []), Mx) :-
 
 kezdotabla(szt(N, M, L), Mx) :-
     fill(N, M, Mx0),
-    foldl(replace_entry, L, Mx0, Mx),
-    print(Mx).
+    foldl(replace_entry, L, Mx0, Mx).
 
 replace_entry(i(J,K,E), Matrix, NewMatrix) :-
     J1 is J - 1,
@@ -66,18 +65,24 @@ find_single_values_Mx([Row|Rest], [H|T], J) :-
 find_single_values_L(Row, H, J) :-
     find_single_values_L(Row, H, 0, J).
 find_single_values_L([], [], _, _).
-find_single_values_L([[X]|RestRows], [{J, K, X}|T], K, J) :-
+find_single_values_L([[X]|RestRows], [Elem|T], K, J) :-
+    Elem = {J, K, X},
     K1 is K + 1,
     find_single_values_L(RestRows, T, K1, J).
 find_single_values_L([_|RestRows], List, K, J) :-
     K1 is K + 1,
     find_single_values_L(RestRows, List, K1, J).
 
-
-%ismert_szukites(szt(N, M, _), Mx0, Mx) :- 
+ismert_szukites(szt(N, M, _), Mx, NMx) :- 
+    find_single_values_Mx(Mx, L),
+    flatten(L, FL),
+    delete_elements_from_Mx(Mx, FL, Mx0),
+    replace_single_element_lists(Mx0, NMx).
     
-replace_single_element_lists(Mx, NMx) :-
-    replace_Mx_all(Mx, [X], X, NMx).
+delete_elements_from_Mx(Mx, [], Mx).
+delete_elements_from_Mx(Mx, [{J, K, X}|Rest], NMx) :-
+    delete_element_from_Mx(Mx, X, J, K, Mx0),
+    delete_elements_from_Mx(Mx0, Rest, NMx).
 
 delete_element_from_Mx(_, _, _, _, []).
 delete_element_from_Mx(Mx, X, J, K, NMx) :-
@@ -108,6 +113,9 @@ delete_element_from_list(N, OldElem, List, List2) :-
     append(L1, [OldElem|Rest], List),
     length(L1, N),
     append(L1, Rest, List2).
+
+replace_single_element_lists(Mx, NMx) :-
+    replace_Mx_all(Mx, [X], X, NMx).
 
 transpose([], []).
 transpose([R|Rs], Tx) :-
