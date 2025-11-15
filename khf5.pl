@@ -74,37 +74,38 @@ find_single_values_L([_|RestRows], List, K, J) :-
     find_single_values_L(RestRows, List, K1, J).
 
 
-%ismert_szukites(szt(N, M, _), Mx0, Mx) :-
+ismert_szukites(szt(N, M, _), Mx0, Mx) :- 
+
     
 replace_single_element_lists(Mx, NMx) :-
     replace_Mx_all(Mx, [X], X, NMx).
 
-find_and_delete(_, _, _, _, []).
-find_and_delete(Mx, X, J, K, NMx) :-
-    delete_from_mx_rows(Mx, X, J, NMx0),
+delete_element_from_Mx(_, _, _, _, []).
+delete_element_from_Mx(Mx, X, J, K, NMx) :-
+    delete_element_at_row(Mx, X, J, NMx0),
     NMx0 \== 0,
 
     transpose(NMx0, Tx),
-    delete_from_mx_rows(Tx, X, K, NTx),
+    delete_element_at_row(Tx, X, K, NTx),
     NTx \== 0,
     transpose(NTx, NMx).
 
-delete_from_mx_rows(Mx, X, J, NMx) :-
+delete_element_at_row(Mx, X, J, NMx) :-
     nth0(J, Mx, Row, Rest),
-    delete_from_row(Row, X, NRow),
+    delete_element_from_row(Row, X, NRow),
     (member([], NRow) -> Mx = [];
     nth0(J, NMx, NRow, Rest)
     ).
 
-delete_from_row([], _, []).
-delete_from_row([H|T], X, [NH|NT]) :-
-    delete_L(_, X, H, NH),
-    delete_from_row(T, X, NT),
+delete_element_from_row([], _, []).
+delete_element_from_row([H|T], X, [NH|NT]) :-
+    delete_element_from_list(_, X, H, NH),
+    delete_element_from_row(T, X, NT),
     !.
 
-delete_L(_, Old, List, List) :-
+delete_element_from_list(_, Old, List, List) :-
     \+ member(Old, List), !.
-delete_L(N, OldElem, List, List2) :-
+delete_element_from_list(N, OldElem, List, List2) :-
     append(L1, [OldElem|Rest], List),
     length(L1, N),
     append(L1, Rest, List2).
