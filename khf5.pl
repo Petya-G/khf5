@@ -90,7 +90,17 @@ delete_element_from_Mx(Mx, Elem, NMx) :-
     Elem1 = {K, J, X},
     delete_element_at_row(Tx, Elem1, NTx),
     NTx \== 0,
-    transpose(NTx, NMx).
+    transpose(NTx, NMx1),
+    replace_size_1_list(NMx1, Elem, NMx).
+
+replace_size_1_list(Mx, {J, K, X}, NMx) :-
+    nth0(J, Mx, Row, RestRows),
+    replace_in_list(Row, K, X, NewRow),
+    nth0(J, NMx, NewRow, RestRows).
+
+replace_in_list(List, Index, Value, NewList) :-
+    nth0(Index, List, _, Rest),
+    nth0(Index, NewList, Value, Rest).
 
 delete_element_at_row(Mx, Elem, NMx) :-
     Elem = {_, J, _},
@@ -123,9 +133,6 @@ delete_element_from_list(X, List, List2) :-
     append(L1, [X|Rest], List),
     !,
     append(L1, Rest, List2).
-
-replace_single_element_lists(Mx, NMx) :-
-    replace_Mx_all(Mx, [X], X, NMx).
 
 transpose([], []).
 transpose([R|Rs], Tx) :-
