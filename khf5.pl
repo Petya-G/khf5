@@ -59,6 +59,24 @@ replace_Mx_all([H|T], Old, New, [NH|NT]) :-
 replace_single_element_lists(Mx, NMx) :-
     replace_Mx_all(Mx, [X], X, NMx).
 
+replace_single_element_lists2(Mx, NMx) :-
+    (X > 0, replace_Mx_all(Mx, [X], X, NMx)). %-> (matrix_pos(NMx, X, Row, Col),
+
+find_and_delete(Mx, X, J, K, NMx) :-
+    nth0(J, Mx, Row),
+    delete_from_row(Row, X, NRow).
+
+delete_from_row([], _, []).
+delete_from_row([H|T], X, [NH|NT]) :-
+    delete_L(_, X, H, NH),
+    delete_from_row(T, X, NT),
+    !.
+
+delete_L(N, OldElem, List, List2) :-
+    length(L1, N),
+    append(L1, [OldElem|Rest], List),
+    append(L1, Rest, List2).
+
 transpose([], []).
 transpose([R|Rs], Tx) :-
     transpose_row(R, [R|Rs], Tx).
