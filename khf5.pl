@@ -59,15 +59,20 @@ find_single_values_Mx(Mx, L) :-
 find_single_values_Mx([], [], _).
 find_single_values_Mx([Row|Rest], [H|T], J) :-
     find_single_values_L(Row, H, J),
-    find_single_values_Mx(Rest, T, J + 1).
+    J1 is J + 1,
+    find_single_values_Mx(Rest, T, J1),
+    !.
 
-find_single_values_L([], [], _).
-find_single_values_L(Row, [H|T], J) :-
-    Row = [List|Rest],
-    List = X,
-    nth0(K, Row, List),
-    H = {X, J, K},
-    find_single_values_L(Rest, T, J).
+find_single_values_L(Row, H, J) :-
+    find_single_values_L(Row, H, 0, J).
+find_single_values_L([], [], _, _).
+find_single_values_L([[X]|RestRows], [{J, K, X}|T], K, J) :-
+    K1 is K + 1,
+    find_single_values_L(RestRows, T, K1, J).
+find_single_values_L([_|RestRows], List, K, J) :-
+    K1 is K + 1,
+    find_single_values_L(RestRows, List, K1, J).
+
 
 %ismert_szukites(szt(N, M, _), Mx0, Mx) :-
     
