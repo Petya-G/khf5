@@ -52,29 +52,59 @@ replace_Mx_all([H|T], Old, New, [NH|NT]) :-
     replace_L(_, Old, New, H, NH),
     replace_Mx_all(T, Old, New, NT), !.
 
-find_single_values_Mx(Mx, L) :-
-    find_single_values_Mx(Mx, L, 0).
-find_single_values_Mx([], [], _).
-find_single_values_Mx([Row|Rest], [H|T], J) :-
-    find_single_values_L(Row, H, J),
+find_values(Mx, L, Cond) :-
+    find_values(Mx, L, 0, Cond).
+
+find_values([], [], _, _).
+find_values([Row|Rest], [FilteredRow|T], J, Cond) :-
+    find_values_in_row(Row, FilteredRow, J, Cond),
     J1 is J + 1,
-    find_single_values_Mx(Rest, T, J1), !.
+    find_values(Rest, T, J1, Cond).
 
-find_single_values_L(Row, H, J) :-
-    find_single_values_L(Row, H, 0, J).
-find_single_values_L([], [], _, _).
-find_single_values_L([[X]|RestRows], [Elem|T], K, J) :-
-    Elem = {J, K, X},
-    K1 is K + 1,
-    find_single_values_L(RestRows, T, K1, J).
-find_single_values_L([_|RestRows], List, K, J) :-
-    K1 is K + 1,
-    find_single_values_L(RestRows, List, K1, J).
+find_values_in_row([], [], _, _).
+find_values_in_row([[X]|Rest], [{J,K,X}|T], J, Cond) :-
+    call(Cond, X),       
+    length(Rest, K), 
+    !,
+    find_values_in_row(Rest, T, J, Cond).
+find_values_in_row([_|Rest], List, J, Cond) :-
+    find_values_in_row(Rest, List, J, Cond).
 
-ismert_szukites(szt(_, _, _), Mx, NMx) :- 
-    find_single_values_Mx(Mx, L),
-    flatten(L, FL),
-    delete_elements_from_Mx(Mx, FL, NMx).
+find_positive_values(Mx, L) :-
+    find_values(Mx, L0, >(0)),
+    flatten(L0, L).
+
+find_zero_values(Mx, L) :-
+    find_values(Mx, L0, =(0)),
+    flatten(L0, L).
+
+ismert_szukites(szt(N, M, _), Mx, NMx) :- 
+    find_positive_values(Mx, Pos),
+    delete_elements_from_Mx(Mx, Pos, NMx0),
+    find_zero_values(NMx0, Zer),
+    replace_zero_lists(NMx0, Zer, NMx, N, M).
+
+replace_zero_lists(Mx, [], Mx, _, _).
+replace_zero_lists(Mx, [Elem | Rest], NMx, N, M) :-
+    replace_zero_list(Mx, Elem, NMx0),
+    Elem = {J, _, X},
+    Z is N - M,
+    nth0(J, Mx, Row),
+    count_in_row(Row, 0, Zero_count),
+    (
+        Z = Zero_count ->
+        Z < Zero_count ->
+    ),
+    replace_zero_lists(NMx0, Rest, NMx, N, M).
+
+replace_zero_list(Mx, {J, K, X}, NMx) :-
+    nth0(J, Mx, Row, RestRows),
+    replace_in_list(Row, K, X, NewRow),
+    nth0(J, NMx0, NewRow, RestRows),
+
+count_in_row(Row, X, Count) :- 
+    flatten(Row, List),
+    aggregate_all(count, member(X, List), Count).
     
 delete_elements_from_Mx(Mx, [], Mx).
 delete_elements_from_Mx(Mx, [Elem|Rest], NMx) :-
