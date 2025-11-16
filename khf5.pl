@@ -53,22 +53,23 @@ replace_Mx_all([H|T], Old, New, [NH|NT]) :-
     replace_Mx_all(T, Old, New, NT), !.
 
 find_values(Mx, L, Cond) :-
-    find_values(Mx, L, 0, Cond).
+    find_values(Mx, L0, 0, Cond),
+    flatten(L0, L).
 
 find_values([], [], _, _).
 find_values([Row|Rest], [FilteredRow|T], J, Cond) :-
-    find_values_in_row(Row, FilteredRow, J, Cond),
+    find_values_in_row(Row, FilteredRow, J, 0, Cond),
     J1 is J + 1,
     find_values(Rest, T, J1, Cond).
 
-find_values_in_row([], [], _, _).
-find_values_in_row([[X]|Rest], [{J,K,X}|T], J, Cond) :-
-    call(Cond, X),       
-    length(Rest, K), 
-    !,
-    find_values_in_row(Rest, T, J, Cond).
-find_values_in_row([_|Rest], List, J, Cond) :-
-    find_values_in_row(Rest, List, J, Cond).
+find_values_in_row([], [], _, _, _).
+find_values_in_row([[X]|Rest], [{J,K,X}|T], J, K, Cond) :-
+    call(Cond, X),
+    K1 is K + 1,
+    find_values_in_row(Rest, T, J, K1, Cond).
+find_values_in_row([_|Rest], T, J, K, Cond) :-
+    K1 is K + 1,
+    find_values_in_row(Rest, T, J, K1, Cond).
 
 find_positive_values(Mx, L) :-
     find_values(Mx, L0, >(0)),
@@ -82,25 +83,27 @@ ismert_szukites(szt(N, M, _), Mx, NMx) :-
     find_positive_values(Mx, Pos),
     delete_elements_from_Mx(Mx, Pos, NMx0),
     find_zero_values(NMx0, Zer),
+    trace,
     replace_zero_lists(NMx0, Zer, NMx, N, M).
 
 replace_zero_lists(Mx, [], Mx, _, _).
 replace_zero_lists(Mx, [Elem | Rest], NMx, N, M) :-
-    replace_zero_list(Mx, Elem, NMx0),
+    replace_size_1_list(Mx, Elem, NMx0),
     Elem = {J, _, X},
     Z is N - M,
-    nth0(J, Mx, Row),
+    nth0(J, NMx0, Row, Rest),
     count_in_row(Row, 0, Zero_count),
     (
-        Z = Zero_count ->
-        Z < Zero_count ->
+        Z =:= Zero_count ->
+            remove_from_row(Row, X, NRow),
+            nth0(J, NMx0, NRow, Rest);
+        Z < Zero_count -> NMx = []
     ),
     replace_zero_lists(NMx0, Rest, NMx, N, M).
 
-replace_zero_list(Mx, {J, K, X}, NMx) :-
-    nth0(J, Mx, Row, RestRows),
-    replace_in_list(Row, K, X, NewRow),
-    nth0(J, NMx0, NewRow, RestRows),
+remove_from_row([H|T], X, [NH|NT]) :-
+    delete(H, X, NH),
+    remove_from_row(T, X, NT).
 
 count_in_row(Row, X, Count) :- 
     flatten(Row, List),
