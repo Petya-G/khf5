@@ -15,16 +15,25 @@
 % :- pred ismert_szukites(feladvany_leiro::in, t_matrix::in, t_matrix::out).
 
 kezdotabla(szt(N, M, []), Mx) :-
-    fill(N, M, Mx).
+    fill(N, M, Mx),
+    !.
 
 kezdotabla(szt(N, M, L), Mx) :-
     fill(N, M, Mx0),
-    foldl(replace_entry, L, Mx0, Mx).
+    foldl(replace_entry, L, Mx0, Mx),
+    !.
+
+ismert_szukites(szt(N, M, _), Mx, NMx) :- 
+    find_positive_values(Mx, Pos),
+    delete_elements_from_Mx(Mx, Pos, NMx0),
+    find_zero_values(NMx0, Zer),
+    replace_zero_lists(NMx0, Zer, NMx, N, M).
 
 replace_entry(i(J,K,E), Matrix, NewMatrix) :-
     J1 is J - 1,
     K1 is K - 1,
-    replace_Mx(Matrix, J1, K1, _, E, NewMatrix).
+    replace_Mx(Matrix, J1, K1, _, E, NewMatrix),
+    !.
 
 fill(N, M, Mx) :-
     length(Mx, N),
@@ -78,12 +87,6 @@ find_positive_values(Mx, L) :-
 find_zero_values(Mx, L) :-
     find_values(Mx, L0, =(0)),
     flatten(L0, L).
-
-ismert_szukites(szt(N, M, _), Mx, NMx) :- 
-    find_positive_values(Mx, Pos),
-    delete_elements_from_Mx(Mx, Pos, NMx0),
-    find_zero_values(NMx0, Zer),
-    replace_zero_lists(NMx0, Zer, NMx, N, M).
 
 replace_zero_lists(Mx, [], Mx, _, _).
 replace_zero_lists(Mx, [Elem | Rest], NMx, N, M) :-
