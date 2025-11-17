@@ -92,11 +92,13 @@ find_values_in_row([_|Rest], T, J, K, Cond) :-
 
 find_positive_values(Mx, L) :-
     find_values(Mx, L0, <(0)),
-    flatten(L0, L).
+    flatten(L0, L),
+    !.
 
 find_zero_values(Mx, L) :-
     find_values(Mx, L0, =(0)),
-    flatten(L0, L).
+    flatten(L0, L),
+    !.
 
 replace_zero_lists(Mx, [], Mx, _, _).
 replace_zero_lists(Mx, [Elem | Rest], NMx, N, M) :-
