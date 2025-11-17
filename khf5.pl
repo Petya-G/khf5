@@ -24,13 +24,14 @@ kezdotabla(szt(N, M, L), Mx) :-
     !.
 
 ismert_szukites(szt(N, M, _), Mx, NMx) :- 
+    %trace,
     find_positive_values(Mx, Pos),
     delete_elements_from_Mx(Mx, Pos, NMx0),
     find_zero_values(NMx0, Zer),
     (Pos \== [] ; Zer \== []),
-    replace_zero_lists(NMx0, Zer, NMx1, N, M),
-    (NMx1 \= Mx -> ismert_szukites(szt(N, M, _), NMx1, NMx);
-    NMx = NMx1),
+    replace_zero_lists(NMx0, Zer, NMx, N, M),
+    %replace_zero_lists(NMx0, Zer, NMx1, N, M),
+    %ismert_szukites(szt(N, M, _), NMx1, NMx),
     !.
 
 replace_entry(i(J,K,E), Matrix, NewMatrix) :-
@@ -76,7 +77,8 @@ find_values([Row|Rest], [FilteredRow|T], J, Cond) :-
     find_values(Rest, T, J1, Cond).
 
 find_values_in_row([], [], _, _, _).
-find_values_in_row([[X]|Rest], [{J,K,X}|T], J, K, Cond) :-
+find_values_in_row([List|Rest], [{J,K,X}|T], J, K, Cond) :-
+    member([X], List),
     call(Cond, X),
     K1 is K + 1,
     find_values_in_row(Rest, T, J, K1, Cond).
@@ -146,7 +148,7 @@ delete_element_at_row(Mx, Elem, NMx) :-
     Elem = {J, _, _},
     nth0(J, Mx, Row, Rest),
     delete_element_from_row(Row, Elem, NRow),
-    (member([], NRow) -> Mx = [];
+    (NRow == [] -> Mx = [];
     nth0(J, NMx, NRow, Rest)
     ).
 
@@ -162,7 +164,8 @@ delete_element_from_row([_|T], Elem, K, [[X]|NT]) :-
 delete_element_from_row([H|T], Elem, Idx, [NH|NT]) :-
     Elem = {_, _, X},
     !,
-    delete_element_from_list(X, H, NH),
+    (is_list(H) -> delete_element_from_list(X, H, NH);
+    NH = H),
     Idx1 = Idx + 1,
     delete_element_from_row(T, Elem, Idx1, NT).
 
