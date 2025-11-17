@@ -83,24 +83,24 @@ ismert_szukites(szt(N, M, _), Mx, NMx) :-
     find_positive_values(Mx, Pos),
     delete_elements_from_Mx(Mx, Pos, NMx0),
     find_zero_values(NMx0, Zer),
-    trace,
     replace_zero_lists(NMx0, Zer, NMx, N, M).
 
 replace_zero_lists(Mx, [], Mx, _, _).
 replace_zero_lists(Mx, [Elem | Rest], NMx, N, M) :-
     replace_size_1_list(Mx, Elem, NMx0),
-    Elem = {J, _, X},
+    Elem = {J, _, _},
     Z is N - M,
-    nth0(J, NMx0, Row, Rest),
+    nth0(J, NMx0, Row),
     count_in_row(Row, 0, Zero_count),
     (
         Z =:= Zero_count ->
-            remove_from_row(Row, X, NRow),
-            nth0(J, NMx0, NRow, Rest);
+            replace_L(J, Row, NRow, NMx0, NMx1),
+            nth0(J, NMx1, NRow, Rest);
         Z < Zero_count -> NMx = []
     ),
-    replace_zero_lists(NMx0, Rest, NMx, N, M).
+    replace_zero_lists(NMx1, Rest, NMx, N, M).
 
+remove_from_row([], _, []).
 remove_from_row([H|T], X, [NH|NT]) :-
     delete(H, X, NH),
     remove_from_row(T, X, NT).
