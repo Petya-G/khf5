@@ -23,19 +23,25 @@ kezdotabla(szt(N, M, L), Mx) :-
     foldl(replace_entry, L, Mx0, Mx),
     !.
 
-ismert_szukites(_, Mx, Mx) :- 
+ismert_szukites(szt(N, M, _), Mx, NMx) :- 
+   szukites(szt(N, M, _), Mx, NMx),
+   Mx \= NMx,
+   !.
+
+szukites(_, Mx, Mx) :- 
     find_positive_values(Mx, Pos),
     find_zero_values(Mx, Zer),
-    Pos == [],
-    Zer == [],
+    is_empty_list(Pos),
+    is_empty_list(Zer),
     !.
 
-ismert_szukites(szt(N, M, _), Mx, NMx) :- 
+szukites(szt(N, M, _), Mx, NMx) :-
     find_positive_values(Mx, Pos),
     find_zero_values(Mx, Zer),
     delete_elements_from_Mx(Mx, Pos, NMx0),
     replace_zero_lists(NMx0, Zer, NMx1, N, M),
-    ismert_szukites(szt(N, M, _), NMx1, NMx).
+    szukites(szt(N, M, _), NMx1, NMx),
+    !.
 
 replace_entry(i(J,K,E), Matrix, NewMatrix) :-
     J1 is J - 1,
@@ -182,6 +188,8 @@ delete_element_from_list(X, List, List2) :-
     append(L1, [X|Rest], List),
     !,
     append(L1, Rest, List2).
+
+is_empty_list(List) :- List = [].
 
 transpose([], []).
 transpose([R|Rs], Tx) :-
