@@ -39,9 +39,43 @@ szukites(szt(N, M, _), Mx, NMx) :-
     find_positive_values(Mx, Pos),
     find_zero_values(Mx, Zer),
     delete_elements_from_Mx(Mx, Pos, NMx0),
-    replace_zero_lists(NMx0, Zer, NMx1, N, M),
+    replace_zeroes(NMx0, Zer, NMx1, N, M),
     szukites(szt(N, M, _), NMx1, NMx),
     !.
+
+replace_zeroes(Mx, Zer, NMx, N, M) :- 
+    replace_zero_lists(Mx, Zer, NMx0, N, M),(
+        NMx0 == [] -> NMx = []
+    ;
+        transpose(NMx0, Tx),
+        switch_rows_to_cols(Zer, TZer),(
+            replace_zero_lists(Tx, TZer, NTx, N, M) -> (
+               NTx == [] -> NMx == []
+            ;
+                transpose(NTx, NMx)
+            )
+        )
+        ; fail
+    ).
+
+switch_rows_to_cols([], []).
+switch_rows_to_cols([{J, K, X}|T], [{K, J, X}|TT]) :-
+    switch_rows_to_cols(T, TT).
+
+replace_zero_lists(Mx, [], Mx, _, _).
+replace_zero_lists(Mx, [Elem | Rest], NMx, N, M) :-
+    replace_size_1_list(Mx, Elem, NMx0),
+    Elem = {J, _, _},
+    Z is N - M,
+    nth0(J, NMx0, Row),
+    count_in_row(Row, 0, Zero_count),
+    (
+        Z =:= Zero_count ->
+            replace_L(J, Row, NRow, NMx0, NMx1),
+            nth0(J, NMx1, NRow, Rest);
+        Z < Zero_count -> NMx = [], !
+    ),
+    replace_zero_lists(NMx1, Rest, NMx, N, M).
 
 replace_entry(i(J,K,E), Matrix, NewMatrix) :-
     J1 is J - 1,
@@ -106,21 +140,6 @@ find_zero_values(Mx, L) :-
     flatten(L0, L),
     !.
 
-replace_zero_lists(Mx, [], Mx, _, _).
-replace_zero_lists(Mx, [Elem | Rest], NMx, N, M) :-
-    replace_size_1_list(Mx, Elem, NMx0),
-    Elem = {J, _, _},
-    Z is N - M,
-    nth0(J, NMx0, Row),
-    count_in_row(Row, 0, Zero_count),
-    (
-        Z =:= Zero_count ->
-            replace_L(J, Row, NRow, NMx0, NMx1),
-            nth0(J, NMx1, NRow, Rest);
-        Z < Zero_count -> NMx = []
-    ),
-    replace_zero_lists(NMx1, Rest, NMx, N, M).
-
 remove_from_row([], _, []).
 remove_from_row([H|T], X, [NH|NT]) :-
     delete(H, X, NH),
@@ -137,15 +156,16 @@ delete_elements_from_Mx(Mx, [Elem|Rest], NMx) :-
 
 delete_element_from_Mx(Mx, Elem, NMx) :-
     delete_element_at_row(Mx, Elem, NMx0),
-    (   NMx0 == []
-    ->  NMx = []
-    ;   transpose(NMx0, Tx),
-        Elem = {J,K,X},
-        Elem1 = {K,J,X},
-        (   delete_element_at_row(Tx, Elem1, NTx)
-        ->  (   NTx == []
-            ->  NMx = []
-            ;   transpose(NTx, NMx1),
+    (
+        NMx0 == [] ->  NMx = []
+    ;
+        transpose(NMx0, Tx),
+        Elem = {J, K, X},
+        Elem1 = {K, J, X},
+        (   delete_element_at_row(Tx, Elem1, NTx) ->  
+            (   NTx == [] ->  NMx = []
+            ;
+                transpose(NTx, NMx1),
                 replace_size_1_list(NMx1, Elem, NMx)
             )
         ;   fail
