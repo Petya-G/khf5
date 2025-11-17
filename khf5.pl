@@ -27,12 +27,16 @@ ismert_szukites(szt(N, M, _), Mx, NMx) :-
     find_positive_values(Mx, Pos),
     delete_elements_from_Mx(Mx, Pos, NMx0),
     find_zero_values(NMx0, Zer),
-    replace_zero_lists(NMx0, Zer, NMx, N, M).
+    (Pos \== [] ; Zer \== []),
+    replace_zero_lists(NMx0, Zer, NMx1, N, M),
+    (NMx1 \= Mx -> ismert_szukites(szt(N, M, _), NMx1, NMx);
+    NMx = NMx1),
+    !.
 
 replace_entry(i(J,K,E), Matrix, NewMatrix) :-
     J1 is J - 1,
     K1 is K - 1,
-    replace_Mx(Matrix, J1, K1, _, E, NewMatrix),
+    replace_Mx(Matrix, J1, K1, _, [E], NewMatrix),
     !.
 
 fill(N, M, Mx) :-
@@ -81,7 +85,7 @@ find_values_in_row([_|Rest], T, J, K, Cond) :-
     find_values_in_row(Rest, T, J, K1, Cond).
 
 find_positive_values(Mx, L) :-
-    find_values(Mx, L0, >(0)),
+    find_values(Mx, L0, <(0)),
     flatten(L0, L).
 
 find_zero_values(Mx, L) :-
@@ -139,7 +143,7 @@ replace_in_list(List, Index, Value, NewList) :-
     nth0(Index, NewList, Value, Rest).
 
 delete_element_at_row(Mx, Elem, NMx) :-
-    Elem = {_, J, _},
+    Elem = {J, _, _},
     nth0(J, Mx, Row, Rest),
     delete_element_from_row(Row, Elem, NRow),
     (member([], NRow) -> Mx = [];
