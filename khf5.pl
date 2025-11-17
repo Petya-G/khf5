@@ -137,15 +137,21 @@ delete_elements_from_Mx(Mx, [Elem|Rest], NMx) :-
 
 delete_element_from_Mx(Mx, Elem, NMx) :-
     delete_element_at_row(Mx, Elem, NMx0),
-    NMx0 \== 0,
+    (   NMx0 == []
+    ->  NMx = []
+    ;   transpose(NMx0, Tx),
+        Elem = {J,K,X},
+        Elem1 = {K,J,X},
+        (   delete_element_at_row(Tx, Elem1, NTx)
+        ->  (   NTx == []
+            ->  NMx = []
+            ;   transpose(NTx, NMx1),
+                replace_size_1_list(NMx1, Elem, NMx)
+            )
+        ;   fail
+        )
+    ).
 
-    transpose(NMx0, Tx),
-    Elem = {J, K, X},
-    Elem1 = {K, J, X},
-    delete_element_at_row(Tx, Elem1, NTx),
-    NTx \== 0,
-    transpose(NTx, NMx1),
-    replace_size_1_list(NMx1, Elem, NMx).
 
 replace_size_1_list(Mx, {J, K, X}, NMx) :-
     nth0(J, Mx, Row, RestRows),
@@ -160,7 +166,7 @@ delete_element_at_row(Mx, Elem, NMx) :-
     Elem = {J, _, _},
     nth0(J, Mx, Row, Rest),
     delete_element_from_row(Row, Elem, NRow),
-    (NRow == [] -> Mx = [];
+    (NRow == [] -> NMx = [];
     nth0(J, NMx, NRow, Rest)
     ).
 
@@ -173,13 +179,20 @@ delete_element_from_row([_|T], Elem, K, [[X]|NT]) :-
     !,
     Idx1 = K + 1,
     delete_element_from_row(T, Elem, Idx1, NT).
-delete_element_from_row([H|T], Elem, Idx, [NH|NT]) :-
+delete_element_from_row([H|T], Elem, Idx, Result) :-
     Elem = {_, _, X},
     !,
-    (is_list(H) -> delete_element_from_list(X, H, NH);
-    NH = H),
-    Idx1 = Idx + 1,
-    delete_element_from_row(T, Elem, Idx1, NT).
+    (   is_list(H)
+    ->  delete_element_from_list(X, H, NH)
+    ;   NH = H
+    ),
+    (   NH == []
+    -> 
+        Result = []
+    ;   Idx1 is Idx + 1,
+        delete_element_from_row(T, Elem, Idx1, NT),
+        Result = [NH|NT]
+    ).
 
 delete_element_from_list(X, List, List) :-
     \+ member(X, List),
