@@ -23,16 +23,19 @@ kezdotabla(szt(N, M, L), Mx) :-
     foldl(replace_entry, L, Mx0, Mx),
     !.
 
-ismert_szukites(szt(N, M, _), Mx, NMx) :- 
-    %trace,
+ismert_szukites(_, Mx, Mx) :- 
     find_positive_values(Mx, Pos),
-    delete_elements_from_Mx(Mx, Pos, NMx0),
-    find_zero_values(NMx0, Zer),
-    (Pos \== [] ; Zer \== []),
-    replace_zero_lists(NMx0, Zer, NMx, N, M),
-    %replace_zero_lists(NMx0, Zer, NMx1, N, M),
-    %ismert_szukites(szt(N, M, _), NMx1, NMx),
+    find_zero_values(Mx, Zer),
+    Pos == [],
+    Zer == [],
     !.
+
+ismert_szukites(szt(N, M, _), Mx, NMx) :- 
+    find_positive_values(Mx, Pos),
+    find_zero_values(Mx, Zer),
+    delete_elements_from_Mx(Mx, Pos, NMx0),
+    replace_zero_lists(NMx0, Zer, NMx1, N, M),
+    ismert_szukites(szt(N, M, _), NMx1, NMx).
 
 replace_entry(i(J,K,E), Matrix, NewMatrix) :-
     J1 is J - 1,
@@ -78,7 +81,8 @@ find_values([Row|Rest], [FilteredRow|T], J, Cond) :-
 
 find_values_in_row([], [], _, _, _).
 find_values_in_row([List|Rest], [{J,K,X}|T], J, K, Cond) :-
-    member([X], List),
+    (member([X], List);
+    List = [X]),
     call(Cond, X),
     K1 is K + 1,
     find_values_in_row(Rest, T, J, K1, Cond).
